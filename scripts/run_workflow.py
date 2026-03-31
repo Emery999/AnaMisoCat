@@ -46,9 +46,12 @@ def submit(workflow_path):
         entry = history[prompt_id]
         status = entry.get("status", {})
 
-        if status.get("status_str") == "error" or any(
-            m.get("type") == "error" for m in status.get("messages", [])
-        ):
+        messages = status.get("messages", [])
+        has_error = status.get("status_str") == "error" or any(
+            (m[0] == "error" if isinstance(m, list) else m.get("type") == "error")
+            for m in messages
+        )
+        if has_error:
             print("\nError during execution:")
             print(json.dumps(entry.get("status"), indent=2))
             sys.exit(1)

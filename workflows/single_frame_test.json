@@ -17,7 +17,7 @@
   "3": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "realistic, photographic, 3d render, deformed, extra limbs, mutation, bad anatomy, inconsistent style, dark background, multiple cats, blurry, low quality, watermark",
+      "text": "realistic, photographic, 3d render, deformed, extra limbs, mutation, bad anatomy, inconsistent style, dark background, multiple cats, blurry, low quality, watermark, background shapes, geometric background, rectangles, squares, abstract background, busy background, gradient background",
       "clip": ["1", 1]
     }
   },
@@ -44,7 +44,7 @@
       "ipadapter": ["7", 0],
       "image": ["4", 0],
       "clip_vision": ["6", 0],
-      "weight": 0.7,
+      "weight": 0.8,
       "weight_type": "linear",
       "combine_embeds": "concat",
       "start_at": 0.0,
@@ -90,9 +90,9 @@
       "negative": ["3", 0],
       "control_net": ["12", 0],
       "image": ["11", 0],
-      "strength": 0.7,
+      "strength": 0.45,
       "start_percent": 0.0,
-      "end_percent": 0.85
+      "end_percent": 0.75
     }
   },
   "15": {
@@ -111,7 +111,7 @@
       "cfg": 7.5,
       "sampler_name": "euler_ancestral",
       "scheduler": "karras",
-      "denoise": 0.8
+      "denoise": 0.7
     }
   },
   "18": {
