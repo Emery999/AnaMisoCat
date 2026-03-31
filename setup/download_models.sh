@@ -18,9 +18,11 @@ hf_download() {
     local repo="$1"
     local filename="$2"
     local dest_dir="$3"
-    local dest="$dest_dir/$filename"
+    local basename
+    basename="$(basename "$filename")"
+    local dest="$dest_dir/$basename"
     if [ -f "$dest" ]; then
-        echo "  [skip] $filename already exists"
+        echo "  [skip] $basename already exists"
         return
     fi
     echo "  [hf] $repo / $filename → $dest_dir"
