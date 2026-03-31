@@ -1,0 +1,20 @@
+frames/
+output/
+
+# OS
+.DS_Store
+
+# Large model files if accidentally placed here
+*.ckpt
+*.safetensors
+*.pth
+*.pt
+*.bin
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# ComfyUI if cloned locally
+ComfyUI/

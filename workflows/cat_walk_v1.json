@@ -1,0 +1,226 @@
+{
+  "_meta": {
+    "title": "AnaMisoCat Walk Cycle v1",
+    "description": "AnimateDiff + ControlNet lineart + dual IP-Adapter. Renders wireframe walk GIF in illustrated cat style.",
+    "notes": [
+      "Load this via ComfyUI → Load button.",
+      "Prerequisite: run setup/install_nodes.sh and setup/download_models.sh first.",
+      "Upload frames/ directory to ComfyUI/input/frames/ before running.",
+      "Upload assets/ images to ComfyUI/input/ before running.",
+      "Start with AnimateDiff DISABLED (node 20 bypass) for single-frame style check."
+    ]
+  },
+  "1": {
+    "id": 1,
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "toonyou_beta6.safetensors"
+    },
+    "_meta": { "title": "Load Checkpoint" }
+  },
+  "2": {
+    "id": 2,
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "fluffy orange and cream longhair cat walking, side view, illustration style, soft warm tones, detailed fur texture, children's book illustration, white background, consistent character design, warm amber and cream colors",
+      "clip": ["1", 1]
+    },
+    "_meta": { "title": "Positive Prompt" }
+  },
+  "3": {
+    "id": 3,
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "realistic, photographic, 3d render, deformed, extra limbs, mutation, bad anatomy, inconsistent style, dark background, multiple cats, blurry, low quality, watermark",
+      "clip": ["1", 1]
+    },
+    "_meta": { "title": "Negative Prompt" }
+  },
+  "4": {
+    "id": 4,
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "cat_walk_rendered.jpeg",
+      "upload": "image"
+    },
+    "_meta": { "title": "Load Primary Style Ref (rendered cat)" }
+  },
+  "5": {
+    "id": 5,
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "cat_pose_sheet.webp",
+      "upload": "image"
+    },
+    "_meta": { "title": "Load Secondary Style Ref (pose sheet)" }
+  },
+  "6": {
+    "id": 6,
+    "class_type": "CLIPVisionLoader",
+    "inputs": {
+      "clip_name": "clip_vision_g.safetensors"
+    },
+    "_meta": { "title": "Load CLIP Vision" }
+  },
+  "7": {
+    "id": 7,
+    "class_type": "IPAdapterModelLoader",
+    "inputs": {
+      "ipadapter_file": "ip-adapter-plus_sd15.safetensors"
+    },
+    "_meta": { "title": "Load IP-Adapter Plus Model" }
+  },
+  "8": {
+    "id": 8,
+    "class_type": "IPAdapterAdvanced",
+    "inputs": {
+      "model": ["1", 0],
+      "ipadapter": ["7", 0],
+      "image": ["4", 0],
+      "clip_vision": ["6", 0],
+      "weight": 0.7,
+      "weight_type": "linear",
+      "combine_embeds": "concat",
+      "start_at": 0.0,
+      "end_at": 1.0,
+      "embeds_scaling": "V only"
+    },
+    "_meta": { "title": "IP-Adapter Primary (rendered cat, weight 0.7)" }
+  },
+  "9": {
+    "id": 9,
+    "class_type": "IPAdapterAdvanced",
+    "inputs": {
+      "model": ["8", 0],
+      "ipadapter": ["7", 0],
+      "image": ["5", 0],
+      "clip_vision": ["6", 0],
+      "weight": 0.3,
+      "weight_type": "linear",
+      "combine_embeds": "concat",
+      "start_at": 0.0,
+      "end_at": 1.0,
+      "embeds_scaling": "V only"
+    },
+    "_meta": { "title": "IP-Adapter Secondary (pose sheet, weight 0.3)" }
+  },
+  "10": {
+    "id": 10,
+    "class_type": "VHS_LoadImages",
+    "inputs": {
+      "directory": "frames",
+      "image_load_cap": 24,
+      "skip_first_images": 0,
+      "select_every_nth": 1,
+      "meta_batch_size": 16
+    },
+    "_meta": { "title": "Load Wireframe Frames (VideoHelperSuite)" }
+  },
+  "11": {
+    "id": 11,
+    "class_type": "LineArtPreprocessor",
+    "inputs": {
+      "image": ["10", 0],
+      "coarse": "disable"
+    },
+    "_meta": { "title": "ControlNet Preprocessor: LineArt" }
+  },
+  "12": {
+    "id": 12,
+    "class_type": "ControlNetLoader",
+    "inputs": {
+      "control_net_name": "control_v11p_sd15_lineart.pth"
+    },
+    "_meta": { "title": "Load ControlNet Lineart" }
+  },
+  "13": {
+    "id": 13,
+    "class_type": "ControlNetApplyAdvanced",
+    "inputs": {
+      "positive": ["2", 0],
+      "negative": ["3", 0],
+      "control_net": ["12", 0],
+      "image": ["11", 0],
+      "strength": 0.7,
+      "start_percent": 0.0,
+      "end_percent": 0.85
+    },
+    "_meta": { "title": "Apply ControlNet (strength 0.70, ends at 0.85)" }
+  },
+  "14": {
+    "id": 14,
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "vae-ft-mse-840000-ema-pruned.safetensors"
+    },
+    "_meta": {
+      "title": "Load VAE",
+      "note": "toonyou bundles a VAE — use 'Baked VAE' if this file is missing"
+    }
+  },
+  "15": {
+    "id": 15,
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "batch_size": 24
+    },
+    "_meta": { "title": "Empty Latent (512×512, 16 frames)" }
+  },
+  "16": {
+    "id": 16,
+    "class_type": "ADE_AnimateDiffLoaderWithContext",
+    "inputs": {
+      "model": ["9", 0],
+      "model_name": "mm_sd_v15_v2.ckpt",
+      "beta_schedule": "autoselect",
+      "context_length": 16,
+      "context_stride": 1,
+      "context_overlap": 4,
+      "context_schedule": "uniform",
+      "closed_loop": true
+    },
+    "_meta": { "title": "AnimateDiff Loader + Context (16 frames, overlap 4)" }
+  },
+  "17": {
+    "id": 17,
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["16", 0],
+      "positive": ["13", 0],
+      "negative": ["13", 1],
+      "latent_image": ["15", 0],
+      "seed": 42,
+      "steps": 22,
+      "cfg": 7.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "karras",
+      "denoise": 0.8
+    },
+    "_meta": { "title": "KSampler (22 steps, CFG 7.5, denoise 0.8)" }
+  },
+  "18": {
+    "id": 18,
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["17", 0],
+      "vae": ["14", 0]
+    },
+    "_meta": { "title": "VAE Decode" }
+  },
+  "19": {
+    "id": 19,
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["18", 0],
+      "frame_rate": 5,
+      "loop_count": 0,
+      "filename_prefix": "cat_walk",
+      "format": "image/gif",
+      "pingpong": false,
+      "save_output": true
+    },
+    "_meta": { "title": "Export GIF (VideoHelperSuite)" }
+  }
+}
